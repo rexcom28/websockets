@@ -1,0 +1,65 @@
+{# app/simple_app/templates/index.html #}
+<! doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width,
+        user-scalable=no, initial-scale=1.0, maximum-
+        scale=1.0, minimum-scale=1.0">
+        <title> Index </title>
+    </head>
+    <body>
+        <h1> Hello Django! <h1>
+        <!--Place where we will display the coneccion message-->
+        <h2 id="welcome"></h2>
+
+        <h1>Bingo</h1>
+        <h2 >Ball <span id="ball"></span></h2>
+        <h2 id="ticket"></h2>
+        
+        <script>
+            /*connect to webSockets server EchoConsumer*/
+            console.log("ws://{{request.get_host}}/ws/echo/");
+            const myWebSocket = new WebSocket("ws://{{request.get_host}}/ws/echo/");
+            const myBingWebSocket = new WebSocket("ws://{{request.get_host}}/ws/bingo/");
+            let ticket = [];
+
+
+            
+            /*//Event when a new message is recived by WebSockets*/
+            myWebSocket.addEventListener('message',(event)=>{
+                /*Display the message in #welcome*/
+                console.log(event)
+                document.querySelector("#welcome").textContent=event.data;
+            })
+
+            myBingWebSocket.addEventListener("message",(evnet)=>{
+                const myData = JSON.parse(event.data);
+                switch(myData.action){
+                    case "New ticket":evnet
+                        //save the new ticket
+                        ticket = myData.ticket;
+                        document.getElementById("ticket").textContent= "Ticket "+ ticket.join(", ");
+                        break;
+                    case "New ball":
+                        //get the ball 
+                        ball = myData.ball
+                        //check if ball is in the ticker and remove it
+                        ticket= ticket.map(item => item === ball ? "X" : item);
+                        //render ticket
+                        document.getElementById("ticket").textContent = "Ticket: "+ticket.join(", ");
+
+                        //render ball
+                        document.getElementById("ball").textContent=ball;
+
+                        //check if we have a winner
+                        if(ticket.find(number=>number!=="X")===undefined){
+                            document.getElementById("ticket").textContent= "Winner!";
+                        }
+                        break;
+                }
+            })
+        </script>
+
+    </body>
+</html>
